@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Augmentation Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { text-align: center; }
+        .image-display { margin: 20px 0; }
+        img { max-width: 400px; max-height: 400px; border: 1px solid #ddd; margin: 10px; }
+        select, input, button { padding: 10px; margin: 5px; font-size: 16px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .loading { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Augmentation Tool</h1>
+        
+        <div>
+            <input type="file" id="imageInput" accept="image/*">
+            <select id="augmentationSelect">
+                <option value="rotate">Rotate</option>
+                <option value="flip_horizontal">Flip Horizontal</option>
+                <option value="flip_vertical">Flip Vertical</option>
+                <option value="brightness">Brightness</option>
+                <option value="contrast">Contrast</option>
+                <option value="blur">Blur</option>
+                <option value="grayscale">Grayscale</option>
+            </select>
+            <button onclick="augmentImage()">Apply Augmentation</button>
+        </div>
+        
+        <div class="loading" id="loading">Processing...</div>
+        
+        <div class="image-display">
+            <div>
+                <h3>Original</h3>
+                <img id="originalImage" style="display: none;">
+            </div>
+            <div>
+                <h3>Augmented</h3>
+                <img id="augmentedImage" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('originalImage');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function augmentImage() {
+            const fileInput = document.getElementById('imageInput');
+            const augmentation = document.getElementById('augmentationSelect').value;
+            
+            if (!fileInput.files[0]) {
+                alert('Please select an image first');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            formData.append('augmentation', augmentation);
+            
+            document.getElementById('loading').style.display = 'block';
+            
+            fetch('/augment', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    const img = document.getElementById('augmentedImage');
+                    img.src = data.image;
+                    img.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                alert('Error: ' + error);
+            });
+        }
+    </script>
+</body>
+</html>
