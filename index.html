@@ -72,14 +72,36 @@
         });
 
         document.getElementById('intensitySlider').addEventListener('input', function(e) {
-            document.getElementById('sliderValue').textContent = e.target.value + '%';
+            const augmentation = document.getElementById('augmentationSelect').value;
+            const suffix = augmentation === 'rotate' ? '°' : '%';
+            document.getElementById('sliderValue').textContent = e.target.value + suffix;
         });
 
         function toggleSlider() {
             const augmentation = document.getElementById('augmentationSelect').value;
             const sliderContainer = document.getElementById('sliderContainer');
-            const hasIntensity = ['brightness', 'contrast', 'blur', 'grayscale'].includes(augmentation);
-            sliderContainer.style.display = hasIntensity ? 'block' : 'none';
+            const slider = document.getElementById('intensitySlider');
+            const label = document.querySelector('.slider-label');
+            const hasIntensity = ['brightness', 'contrast', 'blur', 'grayscale', 'rotate'].includes(augmentation);
+            
+            if (hasIntensity) {
+                sliderContainer.style.display = 'block';
+                if (augmentation === 'rotate') {
+                    label.textContent = 'Degrees:';
+                    slider.min = '0';
+                    slider.max = '360';
+                    slider.value = '30';
+                    document.getElementById('sliderValue').textContent = '30°';
+                } else {
+                    label.textContent = 'Intensity:';
+                    slider.min = '0';
+                    slider.max = '200';
+                    slider.value = '100';
+                    document.getElementById('sliderValue').textContent = '100%';
+                }
+            } else {
+                sliderContainer.style.display = 'none';
+            }
         }
 
         function augmentImage() {
@@ -104,7 +126,7 @@
                 switch(augmentation) {
                     case 'rotate':
                         ctx.translate(canvas.width/2, canvas.height/2);
-                        ctx.rotate(30 * Math.PI / 180);
+                        ctx.rotate(intensity * Math.PI / 180);
                         ctx.drawImage(img, -img.width/2, -img.height/2);
                         break;
                     case 'flip_horizontal':
