@@ -3,14 +3,17 @@
 <head>
     <title>Image Augmentation Tool</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #1a1a1a; color: #fff; }
         .container { text-align: center; }
         .image-display { margin: 20px 0; }
-        img { max-width: 400px; max-height: 400px; border: 1px solid #ddd; margin: 10px; }
-        select, input, button { padding: 10px; margin: 5px; font-size: 16px; }
-        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        img { max-width: 400px; max-height: 400px; border: 1px solid #444; margin: 10px; }
+        select, input, button { padding: 10px; margin: 5px; font-size: 16px; background: #333; color: #fff; border: 1px solid #555; }
+        button { background: #007bff; cursor: pointer; }
         button:hover { background: #0056b3; }
         canvas { display: none; }
+        .slider-container { margin: 10px 0; }
+        input[type="range"] { width: 200px; }
+        .slider-label { display: inline-block; width: 100px; text-align: left; }
     </style>
 </head>
 <body>
@@ -19,7 +22,7 @@
         
         <div>
             <input type="file" id="imageInput" accept="image/*">
-            <select id="augmentationSelect">
+            <select id="augmentationSelect" onchange="toggleSlider()">
                 <option value="rotate">Rotate</option>
                 <option value="flip_horizontal">Flip Horizontal</option>
                 <option value="flip_vertical">Flip Vertical</option>
@@ -29,6 +32,12 @@
                 <option value="grayscale">Grayscale</option>
             </select>
             <button onclick="augmentImage()">Apply Augmentation</button>
+        </div>
+        
+        <div class="slider-container" id="sliderContainer" style="display: none;">
+            <span class="slider-label">Intensity:</span>
+            <input type="range" id="intensitySlider" min="0" max="200" value="100">
+            <span id="sliderValue">100%</span>
         </div>
         
         <div class="image-display">
@@ -62,6 +71,17 @@
             }
         });
 
+        document.getElementById('intensitySlider').addEventListener('input', function(e) {
+            document.getElementById('sliderValue').textContent = e.target.value + '%';
+        });
+
+        function toggleSlider() {
+            const augmentation = document.getElementById('augmentationSelect').value;
+            const sliderContainer = document.getElementById('sliderContainer');
+            const hasIntensity = ['brightness', 'contrast', 'blur', 'grayscale'].includes(augmentation);
+            sliderContainer.style.display = hasIntensity ? 'block' : 'none';
+        }
+
         function augmentImage() {
             if (!originalImageData) {
                 alert('Please select an image first');
@@ -79,6 +99,8 @@
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
+                const intensity = document.getElementById('intensitySlider').value;
+                
                 switch(augmentation) {
                     case 'rotate':
                         ctx.translate(canvas.width/2, canvas.height/2);
@@ -94,19 +116,19 @@
                         ctx.drawImage(img, 0, -img.height);
                         break;
                     case 'brightness':
-                        ctx.filter = 'brightness(150%)';
+                        ctx.filter = `brightness(${intensity}%)`;
                         ctx.drawImage(img, 0, 0);
                         break;
                     case 'contrast':
-                        ctx.filter = 'contrast(150%)';
+                        ctx.filter = `contrast(${intensity}%)`;
                         ctx.drawImage(img, 0, 0);
                         break;
                     case 'blur':
-                        ctx.filter = 'blur(3px)';
+                        ctx.filter = `blur(${intensity/20}px)`;
                         ctx.drawImage(img, 0, 0);
                         break;
                     case 'grayscale':
-                        ctx.filter = 'grayscale(100%)';
+                        ctx.filter = `grayscale(${intensity}%)`;
                         ctx.drawImage(img, 0, 0);
                         break;
                     default:
